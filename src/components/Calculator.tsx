@@ -1,5 +1,13 @@
-import { Button, Container, makeStyles, Typography } from "@material-ui/core";
-import React from "react";
+import {
+  Button,
+  Container,
+  FormControl,
+  FormLabel,
+  makeStyles,
+  Typography,
+} from "@material-ui/core";
+import { KeyboardDatePicker } from "@material-ui/pickers";
+import React, { useMemo, useState } from "react";
 import { parseCsv } from "../model/vec-csv";
 
 const useStyles = makeStyles((theme) => ({
@@ -16,29 +24,23 @@ const useStyles = makeStyles((theme) => ({
 
 export const Upload = () => {
   const fileInputRef = React.createRef<HTMLInputElement>();
+  const [usageFile, setUsageFile] = useState<File | undefined>(undefined);
+  const [startDate, setStartDate] = useState<Date>(new Date("2020-03-01"));
+  const [endDate, setEndDate] = useState<Date>(new Date("2020-06-30"));
+  const [wfhUsage, setWfhUsage] = useState<number | undefined>();
   const classes = useStyles();
 
-  const onFilesAdded = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-
-    if (files?.length !== 1) {
-      return;
-    }
-
-    const file = files.item(0);
-
-    if (!file) {
-      return;
-    }
+  useMemo(async () => {
+    if (!usageFile) return;
 
     try {
-      const usageData = await parseCsv(file);
+      const usageData = await parseCsv(usageFile);
 
       // filter usage data by consumption
       const consumptionData = usageData.filter(
         (x) =>
-          x.date >= new Date("2020/01/01") &&
-          x.date <= new Date("2020/09/12") &&
+          x.date >= startDate &&
+          x.date <= endDate &&
           x.date.getDay() >= 1 &&
           x.date.getDay() <= 5 &&
           x.type === "consumption"
@@ -54,11 +56,27 @@ export const Upload = () => {
         }
       });
 
-      debugger;
-
-      // clear file input
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      setWfhUsage(wfhUsage);
     } catch {}
+  }, [usageFile, startDate, endDate]);
+
+  const onFilesAdded = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+
+    if (files?.length !== 1) {
+      return;
+    }
+
+    const file = files.item(0);
+
+    if (!file) {
+      return;
+    }
+
+    setUsageFile(file);
+
+    // clear file input
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const upload = () => {
@@ -69,7 +87,7 @@ export const Upload = () => {
     <Container component="main" maxWidth="xs">
       <div className={classes.paper}>
         <Typography variant="h5" component="h1">
-          ATO home office Victorian Energy Compare Data electricity calculator
+          Home office electricity calculator using Victorian Energy Compare Data
         </Typography>
         <div>
           <input
@@ -83,6 +101,30 @@ export const Upload = () => {
             Upload CSV
           </Button>
         </div>
+        <FormControl>
+          <FormLabel>Working form home period</FormLabel>
+          <KeyboardDatePicker
+            autoOk
+            disableToolbar
+            variant="inline"
+            label="Start date"
+            format="dd/MM/yyyy"
+            value={startDate}
+            InputAdornmentProps={{ position: "start" }}
+            onChange={(date) => date && setStartDate(date)}
+          />
+          <KeyboardDatePicker
+            autoOk
+            disableToolbar
+            variant="inline"
+            label="End date"
+            format="dd/MM/yyyy"
+            value={endDate}
+            InputAdornmentProps={{ position: "start" }}
+            onChange={(date) => date && setEndDate(date)}
+          />
+        </FormControl>
+        <div>WFH Usage:{wfhUsage}</div>
       </div>
     </Container>
   );
