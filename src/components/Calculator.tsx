@@ -17,7 +17,7 @@ import {
 import { KeyboardDatePicker, KeyboardTimePicker } from "@material-ui/pickers";
 import React, { useCallback, useMemo, useState } from "react";
 import { parseCsv } from "../model/vec-csv";
-import { parse } from "date-fns";
+import { parse, format } from "date-fns";
 import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
@@ -157,6 +157,7 @@ export const Upload = () => {
           wfhUsage += value;
         }
       }
+      return true;
     });
 
     setWfhUsage(wfhUsage);
@@ -226,7 +227,7 @@ export const Upload = () => {
         </Grid>
         <Grid item xs>
           <Paper className={classes.paper}>
-          <Typography variant="h6" className={classes.heading}>
+            <Typography variant="h6" className={classes.heading}>
               <InsertDriveFileIcon />
               Victorian Energy Compare Data
             </Typography>
@@ -262,11 +263,15 @@ export const Upload = () => {
                 browser on your device.
               </FormHelperText>
             </Box>
-            {usageFile && (
+            {usageFile && usageData && (
               <Box className={classes.uploaded}>
-                File name: {usageFile?.name}
+                <strong>File name:</strong> {usageFile?.name}
                 <br />
-                File size: {usageFile?.size.toString()} bytes
+                <strong>File size:</strong> {usageFile?.size.toString()} bytes
+                <br />
+                <strong>Earliest record date:</strong> {format(usageData[0].date, "PPPP")}
+                <br />
+                <strong>Latest record date:</strong> {format(usageData[usageData.length - 1].date, "PPPP")}
               </Box>
             )}
           </Paper>
