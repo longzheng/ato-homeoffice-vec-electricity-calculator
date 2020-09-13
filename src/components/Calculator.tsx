@@ -59,12 +59,19 @@ const useStyles = makeStyles((theme) => ({
     color: "white",
     padding: theme.spacing(2),
   },
+  error: {
+    borderRadius: theme.shape.borderRadius,
+    background: theme.palette.error.dark,
+    color: "white",
+    padding: theme.spacing(2),
+  },
 }));
 
 export const Upload = () => {
   const fileInputRef = React.createRef<HTMLInputElement>();
   const [usageFile, setUsageFile] = useState<File | undefined>(undefined);
   const [usageData, setUsageData] = useState<VecRecord[]>();
+  const [csvError, setCsvError] = useState<boolean>(false);
   const [startDate, setStartDate] = useState<Date>(new Date("2020-03-01"));
   const [endDate, setEndDate] = useState<Date>(new Date("2020-06-30"));
   const [startTime, setStartTime] = useState<Date>(
@@ -135,8 +142,10 @@ export const Upload = () => {
 
     try {
       setUsageData(await parseCsv(usageFile));
+      setCsvError(false);
     } catch {
-      // todo: handle error parsing CSV
+      setUsageData(undefined);
+      setCsvError(true);
     }
   }, [usageFile]);
 
@@ -283,6 +292,11 @@ export const Upload = () => {
                 <br />
                 <strong>Latest record date:</strong>{" "}
                 {format(usageData[usageData.length - 1].date, "PPPP")}
+              </Box>
+            )}
+             {csvError && (
+              <Box className={classes.error}>
+                There was a problem processing the CSV. Please ensure this data is in the correct Victorian Energy Compare Data format.
               </Box>
             )}
           </Paper>
