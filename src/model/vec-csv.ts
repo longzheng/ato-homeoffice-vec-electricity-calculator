@@ -1,4 +1,5 @@
 import * as papaparse from "papaparse";
+import { parse } from "date-fns";
 
 type VecRecord = {
   nmi: number;
@@ -51,7 +52,7 @@ const onParseStep = (
     nmi: parseInt(data["NMI"]),
     meter_serial_number: parseInt(data["METER SERIAL NUMBER"]),
     type: data["CON/GEN"] === "Consumption" ? "consumption" : "generation",
-    date: new Date(data["DATE"]),
+    date: parse(data["DATE"], "d/M/yy", new Date()),
     estimated: data["ESTIMATED?"] === "Yes",
     usageByHalfHour: buildUsageByHalfHour(data),
   });
