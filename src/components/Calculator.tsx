@@ -208,7 +208,7 @@ export const Upload = () => {
             <a
               href="https://www.ato.gov.au/individuals/income-and-deductions/deductions-you-can-claim/home-office-expenses/#Actualcostmethod"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
             >
               actual cost method
             </a>
@@ -217,7 +217,7 @@ export const Upload = () => {
             <a
               href="https://www.victorianenergysaver.vic.gov.au/energy-advice-for-business/accessing-and-understanding-energy-data"
               target="_blank"
-              rel="noopener"
+              rel="noopener noreferrer"
             >
               Victorian Energy Compare Data
             </a>
@@ -235,7 +235,7 @@ export const Upload = () => {
               <a
                 href="https://www.victorianenergysaver.vic.gov.au/energy-advice-for-business/accessing-and-understanding-energy-data#portal"
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
               >
                 electricity distributor's website
               </a>
