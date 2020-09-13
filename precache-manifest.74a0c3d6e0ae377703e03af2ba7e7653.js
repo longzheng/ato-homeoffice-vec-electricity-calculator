@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "a6a90a538d91bb66c6b91dfc8241a2a4",
+    "revision": "855fdd679be260e632e8fa77c0676aa3",
     "url": "/ato-homeoffice-vec-electricity-calculator/index.html"
   },
   {
