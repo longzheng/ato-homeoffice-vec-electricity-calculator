@@ -52,7 +52,7 @@ const onParseStep = (
     nmi: parseInt(data["NMI"]),
     meter_serial_number: parseInt(data["METER SERIAL NUMBER"]),
     type: data["CON/GEN"] === "Consumption" ? "consumption" : "generation",
-    date: parse(data["DATE"], "d/M/yy", new Date()),
+    date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
     estimated: data["ESTIMATED?"] === "Yes",
     usageByHalfHour: buildUsageByHalfHour(data),
   });
