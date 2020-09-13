@@ -143,9 +143,11 @@ export const Upload = () => {
     try {
       setUsageData(await parseCsv(usageFile));
       setCsvError(false);
+      gtag('event', 'csv_parsed');
     } catch {
       setUsageData(undefined);
       setCsvError(true);
+      gtag('event', 'csv_error');
     }
   }, [usageFile]);
 
@@ -203,6 +205,9 @@ export const Upload = () => {
     }
 
     setUsageFile(file);
+
+    // analytics event
+    gtag('event', 'select_csv');
 
     // clear file input
     if (fileInputRef.current) fileInputRef.current.value = "";
