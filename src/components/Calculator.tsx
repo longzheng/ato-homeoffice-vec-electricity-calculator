@@ -25,7 +25,7 @@ import PowerIcon from "@material-ui/icons/Power";
 import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import { VecRecord } from "../model/vec-csv";
-import { max, median, q25, q50, q75, quantile } from "../model/maths-helper";
+import { max, median, q25, q75, quantile } from "../model/maths-helper";
 
 const useStyles = makeStyles((theme) => ({
   container: {
