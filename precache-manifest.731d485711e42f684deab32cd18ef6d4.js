@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "defe60df442c4fae07abedfb834a9eb5",
+    "revision": "2ef73d8d3e2b47c9da4f22be40734a27",
     "url": "/ato-homeoffice-vec-electricity-calculator/index.html"
   },
   {
@@ -12,8 +12,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/ato-homeoffice-vec-electricity-calculator/static/js/2.79f2d38c.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "63360752abf9c93408ac",
-    "url": "/ato-homeoffice-vec-electricity-calculator/static/js/main.f8c013e3.chunk.js"
+    "revision": "88e52db7c8d60d494ec9",
+    "url": "/ato-homeoffice-vec-electricity-calculator/static/js/main.1629a6f8.chunk.js"
   },
   {
     "revision": "aae846e16461a66a0f9a",
