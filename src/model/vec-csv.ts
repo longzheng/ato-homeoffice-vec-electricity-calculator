@@ -1,7 +1,7 @@
 import * as papaparse from "papaparse";
 import { parse } from "date-fns";
 
-type VecRecord = {
+export type VecRecord = {
   nmi: number;
   meter_serial_number: number;
   type: "consumption" | "generation";
