@@ -11,6 +11,7 @@ import {
   FormLabel,
   Grid,
   InputAdornment,
+  Link,
   makeStyles,
   Paper,
   TextField,
@@ -29,16 +30,16 @@ import { VecRecord } from "../model/vec-csv";
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    marginTop: theme.spacing(6),
-    marginBottom: theme.spacing(6),
+    marginTop: theme.spacing(5),
+    marginBottom: theme.spacing(5),
   },
   paper: {
     padding: theme.spacing(2),
   },
   title: {
-    color: theme.palette.primary.main,
+    color: theme.palette.text.secondary,
     textAlign: "center",
-    "& > svg": {
+    "& svg": {
       display: "block",
       fontSize: 60,
       marginLeft: "auto",
@@ -215,31 +216,30 @@ export const Upload = () => {
   return (
     <Container maxWidth="sm" className={classes.container}>
       <Grid container spacing={3} direction="column">
-        <Grid item xs>
-          <Typography variant="h5" className={classes.title} gutterBottom>
-            <HomeIcon />
-            Home office electricity calculator using Victorian Energy Compare
-            Data
+        <Grid item xs className={classes.title}>
+          <Typography variant="h6" gutterBottom>
+            Home office electricity calculator
+            <br /> using Victorian Energy Compare Data
           </Typography>
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="body2" gutterBottom>
             To help calculate the electricity usage while working from home
-            during COVID lockdown for the "
-            <a
+            during COVID lockdown for{" "}
+            <Link
               href="https://www.ato.gov.au/individuals/income-and-deductions/deductions-you-can-claim/home-office-expenses/#Actualcostmethod"
               target="_blank"
               rel="noopener noreferrer"
             >
-              actual cost method
-            </a>
-            " of deducting home office expenses, this tool automatically
-            calculates your electricity usage from the{" "}
-            <a
+              ATO's "actual cost method"
+            </Link>{" "}
+            of deducting home office expenses, this tool automatically
+            processes the{" "}
+            <Link
               href="https://www.victorianenergysaver.vic.gov.au/energy-advice-for-business/accessing-and-understanding-energy-data"
               target="_blank"
               rel="noopener noreferrer"
             >
               Victorian Energy Compare Data
-            </a>
+            </Link>
             .
           </Typography>
         </Grid>
@@ -251,13 +251,13 @@ export const Upload = () => {
             </Typography>
             <Typography variant="subtitle1" gutterBottom>
               Export your Victorian Energy Compare Data CSV file from your{" "}
-              <a
+              <Link
                 href="https://www.victorianenergysaver.vic.gov.au/energy-advice-for-business/accessing-and-understanding-energy-data#portal"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 electricity distributor's website
-              </a>
+              </Link>
               .
             </Typography>
             <input
@@ -392,6 +392,7 @@ export const Upload = () => {
                       control={
                         <Checkbox
                           checked={(daysOfWeek as any)[value.toLowerCase()]}
+                          color="primary"
                           onChange={handleDaysOfWeekChange}
                           name={value.toLowerCase()}
                         />
@@ -492,13 +493,13 @@ export const Upload = () => {
                         />
                         <FormHelperText>
                           Refer to{" "}
-                          <a
+                          <Link
                             href="https://www.ato.gov.au/individuals/income-and-deductions/deductions-you-can-claim/home-office-expenses/#:~:text=You%20must%20take%20into%20account%20other%20members%20of%20your%20household%20when%20you%20work%20out%20your%20expenses.%20If%20a%20member%20of%20your%20household%20is%20using%20the%20same%20area%20of%20the%20house%20or%20the%20same%20service%20when%20you're%20working,%20you%20must%20apportion%20your%20expenses%20accordingly."
                             target="_blank"
                             rel="noopener noreferrer"
                           >
                             ATO guidance
-                          </a>{" "}
+                          </Link>{" "}
                           on how to splits costs in a household.
                         </FormHelperText>
                       </Grid>
