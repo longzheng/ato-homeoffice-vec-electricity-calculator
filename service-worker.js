@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/ato-homeoffice-vec-electricity-calculator/precache-manifest.74a0c3d6e0ae377703e03af2ba7e7653.js"
+  "/ato-homeoffice-vec-electricity-calculator/precache-manifest.170c5f80bf329f589e37dca044b535bb.js"
 );
 
 self.addEventListener('message', (event) => {
