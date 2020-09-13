@@ -226,6 +226,10 @@ export const Upload = () => {
         </Grid>
         <Grid item xs>
           <Paper className={classes.paper}>
+          <Typography variant="h6" className={classes.heading}>
+              <InsertDriveFileIcon />
+              Victorian Energy Compare Data
+            </Typography>
             <Typography variant="subtitle1" gutterBottom>
               Export your Victorian Energy Compare Data CSV file from your{" "}
               <a
@@ -250,7 +254,6 @@ export const Upload = () => {
                 variant="contained"
                 color="primary"
                 size="large"
-                startIcon={<InsertDriveFileIcon />}
               >
                 Select your Victorian Energy Compare CSV
               </Button>
