@@ -4,7 +4,6 @@ import {
   Checkbox,
   CircularProgress,
   Container,
-  FormControl,
   FormControlLabel,
   FormGroup,
   FormHelperText,
@@ -311,9 +310,9 @@ export const Upload = () => {
             <Typography variant="subtitle1" gutterBottom>
               Choose the appropriate times you work from home.
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item sm={6}>
-                <FormControl>
+            <Box marginY={2}>
+              <Grid container spacing={2}>
+                <Grid item sm>
                   <FormLabel>Dates</FormLabel>
                   <KeyboardDatePicker
                     autoOk
@@ -341,10 +340,11 @@ export const Upload = () => {
                     margin="normal"
                     fullWidth
                   />
-                </FormControl>
-              </Grid>
-              <Grid item sm={6}>
-                <FormControl>
+                   <FormHelperText>
+                    Selects dates when you began working from home full-time and the tax year end.
+                  </FormHelperText>
+                </Grid>
+                <Grid item sm>
                   <FormLabel>Hours</FormLabel>
                   <KeyboardTimePicker
                     label="Start time"
@@ -371,37 +371,35 @@ export const Upload = () => {
                   <FormHelperText>
                     Usage data is only available in 30 minute increments.
                   </FormHelperText>
-                </FormControl>
+                </Grid>
               </Grid>
-            </Grid>
+            </Box>
             <Box marginTop={2}>
-              <FormControl>
-                <FormLabel>Days of week</FormLabel>
-                <FormGroup row>
-                  {[
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                    "Sunday",
-                  ].map((value) => (
-                    <FormControlLabel
-                      key={value}
-                      control={
-                        <Checkbox
-                          checked={(daysOfWeek as any)[value.toLowerCase()]}
-                          color="primary"
-                          onChange={handleDaysOfWeekChange}
-                          name={value.toLowerCase()}
-                        />
-                      }
-                      label={value}
-                    />
-                  ))}
-                </FormGroup>
-              </FormControl>
+              <FormLabel>Days of week</FormLabel>
+              <FormGroup row>
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((value) => (
+                  <FormControlLabel
+                    key={value}
+                    control={
+                      <Checkbox
+                        checked={(daysOfWeek as any)[value.toLowerCase()]}
+                        color="primary"
+                        onChange={handleDaysOfWeekChange}
+                        name={value.toLowerCase()}
+                      />
+                    }
+                    label={value}
+                  />
+                ))}
+              </FormGroup>
             </Box>
           </Paper>
         </Grid>
@@ -453,7 +451,7 @@ export const Upload = () => {
                 {usageData && wfhUsage > 0 && (
                   <>
                     <Grid container spacing={1}>
-                      <Grid item sm={6}>
+                      <Grid item xs sm={6}>
                         <TextField
                           label="Cost per kWh"
                           variant="outlined"
