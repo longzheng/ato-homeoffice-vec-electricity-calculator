@@ -1,0 +1,19 @@
+{
+  "files": {
+    "main.js": "/ato-homeoffice-vec-electricity-calculator/static/js/main.d4dccc2f.chunk.js",
+    "main.js.map": "/ato-homeoffice-vec-electricity-calculator/static/js/main.d4dccc2f.chunk.js.map",
+    "runtime-main.js": "/ato-homeoffice-vec-electricity-calculator/static/js/runtime-main.ca989e34.js",
+    "runtime-main.js.map": "/ato-homeoffice-vec-electricity-calculator/static/js/runtime-main.ca989e34.js.map",
+    "static/js/2.024c1f2d.chunk.js": "/ato-homeoffice-vec-electricity-calculator/static/js/2.024c1f2d.chunk.js",
+    "static/js/2.024c1f2d.chunk.js.map": "/ato-homeoffice-vec-electricity-calculator/static/js/2.024c1f2d.chunk.js.map",
+    "index.html": "/ato-homeoffice-vec-electricity-calculator/index.html",
+    "precache-manifest.3f75d27e3d3d09f27933bbb41ecf477b.js": "/ato-homeoffice-vec-electricity-calculator/precache-manifest.3f75d27e3d3d09f27933bbb41ecf477b.js",
+    "service-worker.js": "/ato-homeoffice-vec-electricity-calculator/service-worker.js",
+    "static/js/2.024c1f2d.chunk.js.LICENSE.txt": "/ato-homeoffice-vec-electricity-calculator/static/js/2.024c1f2d.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.ca989e34.js",
+    "static/js/2.024c1f2d.chunk.js",
+    "static/js/main.d4dccc2f.chunk.js"
+  ]
+}
