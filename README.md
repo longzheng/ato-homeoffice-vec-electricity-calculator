@@ -1,3 +1,7 @@
+## Live app: https://longzheng.github.io/ato-homeoffice-vec-electricity-calculator/
+
+-----
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
