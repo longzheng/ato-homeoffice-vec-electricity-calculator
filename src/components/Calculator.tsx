@@ -25,6 +25,7 @@ import PowerIcon from "@material-ui/icons/Power";
 import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import { VecRecord } from "../model/vec-csv";
+import { max, median, q25, q50, q75, quantile } from "../model/maths-helper";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -88,10 +89,11 @@ export const Upload = () => {
     saturday: false,
     sunday: false,
   });
-  const [wfhUsage, setWfhUsage] = useState<number>(0);
+  const [wfhUsage, setWfhUsage] = useState<number[]>();
   const [wfhDays, setWfhDays] = useState<number>(0);
   const [costPerKwh, setCostPerKwh] = useState<number>(0.22);
   const [percentageUsage, setPercentageUsage] = useState<number>(100);
+  const [usageMaxQuantile, setUsageMaxQuantile] = useState<number>(95);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const classes = useStyles();
@@ -142,11 +144,11 @@ export const Upload = () => {
     try {
       setUsageData(await parseCsv(usageFile));
       setCsvError(false);
-      gtag('event', 'csv_parsed');
+      gtag("event", "csv_parsed");
     } catch {
       setUsageData(undefined);
       setCsvError(true);
-      gtag('event', 'csv_error');
+      gtag("event", "csv_error");
     }
   }, [usageFile]);
 
@@ -164,14 +166,14 @@ export const Upload = () => {
         x.type === "consumption"
     );
 
-    let wfhUsage = 0;
+    let wfhUsage: number[] = [];
     let wfhDays = 0;
     consumptionData.map((record) => {
       for (const [key, value] of Object.entries(record.usageByHalfHour)) {
         // our data's keys are represented as a decimal value (e.g. 9:30 = 9.5)
         let hour = parseFloat(key);
         if (isHourScheduleMatch(hour)) {
-          wfhUsage += value;
+          wfhUsage.push(value);
         }
       }
       wfhDays++;
@@ -183,6 +185,28 @@ export const Upload = () => {
 
     setIsProcessing(false);
   }, [usageData, startDate, endDate, isDayOfWeekMatch, isHourScheduleMatch]);
+
+  const wfhUsageSummary = useMemo(() => {
+    if (wfhUsage) {
+      return {
+        max: max(wfhUsage),
+        median: median(wfhUsage),
+        q25: q25(wfhUsage),
+        q75: q75(wfhUsage),
+        q95: quantile(wfhUsage, 0.95),
+        custom: quantile(wfhUsage, usageMaxQuantile / 100),
+      };
+    }
+  }, [wfhUsage, usageMaxQuantile]);
+
+  const wfhUsageSum = useMemo(() => {
+    if (!wfhUsage || !wfhUsageSummary) return 0;
+
+    return wfhUsage?.reduce(
+      (acc, cur) => acc + Math.min(cur, wfhUsageSummary.custom),
+      0
+    );
+  }, [wfhUsage, wfhUsageSummary]);
 
   const handleDaysOfWeekChange = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -206,7 +230,7 @@ export const Upload = () => {
     setUsageFile(file);
 
     // analytics event
-    gtag('event', 'select_csv');
+    gtag("event", "select_csv");
 
     // clear file input
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -344,8 +368,9 @@ export const Upload = () => {
                     margin="normal"
                     fullWidth
                   />
-                   <FormHelperText>
-                    Selects dates when you began working from home full-time and the tax year end.
+                  <FormHelperText>
+                    Selects dates when you began working from home full-time and
+                    the tax year end.
                   </FormHelperText>
                 </Grid>
                 <Grid item sm>
@@ -392,7 +417,7 @@ export const Upload = () => {
                 ].map((value) => (
                   <FormControlLabel
                     key={value}
-                    style={{width: 124}}
+                    style={{ width: 124 }}
                     control={
                       <Checkbox
                         checked={(daysOfWeek as any)[value.toLowerCase()]}
@@ -417,23 +442,81 @@ export const Upload = () => {
             {isProcessing && <CircularProgress />}
             {!isProcessing && (
               <>
-                {usageData && wfhUsage > 0 && (
-                  <Box m={4} textAlign="center">
-                    <Box fontSize={28} color="primary.main">
-                      {Math.round(wfhUsage * 1000) / 1000} kWh
-                    </Box>
-                    <Box color="text.secondary">
-                      / {wfhDays} work days = ~
-                      {Math.round((wfhUsage / wfhDays) * 1000) / 1000} kWh per
-                      work day
-                    </Box>
-                  </Box>
-                )}
-                {usageData && wfhUsage === 0 && (
-                  <Box m={4} textAlign="center" color="text.secondary">
-                    <Box fontSize={20}>No electricity usage</Box>
-                    Check if your usage data and schedule are correct
-                  </Box>
+                {usageData && wfhUsageSummary && (
+                  <>
+                    <Grid container spacing={2}>
+                      <Grid item sm={7}>
+                        <TextField
+                          label="Max quantiles"
+                          variant="outlined"
+                          margin="normal"
+                          type="number"
+                          value={usageMaxQuantile}
+                          onChange={(input) =>
+                            setUsageMaxQuantile(
+                              Math.min(parseInt(input.currentTarget.value), 100)
+                            )
+                          }
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          }}
+                          inputProps={{
+                            max: 100,
+                          }}
+                          fullWidth
+                        />
+                        <FormHelperText>
+                          To remove outlier usage during your working schedule
+                          (e.g. kettles), the calculator will cap your 30 min
+                          usage to{" "}
+                          {Math.round(wfhUsageSummary.custom * 1000) / 1000}{" "}
+                          kWh.
+                        </FormHelperText>
+                      </Grid>
+                      <Grid item sm>
+                        <FormHelperText>
+                          <strong>Usage per 30 min block</strong>
+                          <br />
+                          Max: {Math.round(wfhUsageSummary.max * 1000) /
+                            1000}{" "}
+                          kWh
+                          <br />
+                          Q95: {Math.round(wfhUsageSummary.q95 * 1000) /
+                            1000}{" "}
+                          kWh
+                          <br />
+                          Upper quartile:{" "}
+                          {Math.round(wfhUsageSummary.q75 * 1000) / 1000} kWh
+                          <br />
+                          Median:{" "}
+                          {Math.round(wfhUsageSummary.median * 1000) / 1000} kWh
+                          <br />
+                          Lower quartile:{" "}
+                          {Math.round(wfhUsageSummary.q25 * 1000) / 1000} kWh
+                        </FormHelperText>
+                      </Grid>
+                    </Grid>
+                    {wfhUsageSum > 0 && (
+                      <Box m={4} textAlign="center">
+                        <Box fontSize={28} color="primary.main">
+                          {Math.round(wfhUsageSum * 1000) / 1000} kWh
+                        </Box>
+                        <Box color="text.secondary">
+                          / {wfhDays} work days = ~
+                          {Math.round((wfhUsageSum / wfhDays) * 1000) / 1000}{" "}
+                          kWh per work day
+                        </Box>
+                      </Box>
+                    )}
+                    {wfhUsageSum === 0 && (
+                      <Box m={4} textAlign="center" color="text.secondary">
+                        <Box fontSize={20}>No electricity usage</Box>
+                        Check if your usage data and schedule are correct
+                      </Box>
+                    )}
+                  </>
                 )}
                 {!usageData && (
                   <Box m={4} textAlign="center" color="text.secondary">
@@ -453,9 +536,9 @@ export const Upload = () => {
             {isProcessing && <CircularProgress />}
             {!isProcessing && (
               <>
-                {usageData && wfhUsage > 0 && (
+                {usageData && wfhUsageSum > 0 && (
                   <>
-                    <Grid container spacing={1}>
+                    <Grid container spacing={2}>
                       <Grid item xs sm={6}>
                         <TextField
                           label="Cost per kWh"
@@ -512,13 +595,18 @@ export const Upload = () => {
                       <Box fontSize={28} color="primary.main">
                         $
                         {Math.round(
-                          wfhUsage * costPerKwh * (percentageUsage / 100) * 100
+                          wfhUsageSum *
+                            costPerKwh *
+                            (percentageUsage / 100) *
+                            100
                         ) / 100 || 0}
                       </Box>
                       <Box color="text.secondary">
                         / {wfhDays} work days = ~$
                         {Math.round(
-                          ((wfhUsage * costPerKwh * (percentageUsage / 100)) /
+                          ((wfhUsageSum *
+                            costPerKwh *
+                            (percentageUsage / 100)) /
                             wfhDays) *
                             1000
                         ) / 1000 || 0}{" "}
@@ -527,7 +615,7 @@ export const Upload = () => {
                     </Box>
                   </>
                 )}
-                {usageData && wfhUsage === 0 && (
+                {usageData && wfhUsageSum === 0 && (
                   <Box m={4} textAlign="center" color="text.secondary">
                     <Box fontSize={20}>No electricity usage</Box>
                     Check if your usage data and schedule are correct
