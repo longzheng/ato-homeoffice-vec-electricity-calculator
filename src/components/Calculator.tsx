@@ -269,6 +269,11 @@ export const Upload = () => {
             </Link>
             .
           </Typography>
+          <Typography variant="body2" gutterBottom>
+            Note: This tool will not work if you have solar power due to net
+            metering - your usage offset by solar will not be reflected in the
+            Victorian Energy Compare consumption data.
+          </Typography>
         </Grid>
         <Grid item xs>
           <Paper className={classes.paper}>
