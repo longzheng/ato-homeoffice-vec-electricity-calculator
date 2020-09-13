@@ -222,8 +222,8 @@ export const Upload = () => {
             Data
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
-            To help calculating the electricity usage while working from home
-            during lockdown for the "
+            To help calculate the electricity usage while working from home
+            during COVID lockdown for the "
             <a
               href="https://www.ato.gov.au/individuals/income-and-deductions/deductions-you-can-claim/home-office-expenses/#Actualcostmethod"
               target="_blank"
@@ -294,9 +294,10 @@ export const Upload = () => {
                 {format(usageData[usageData.length - 1].date, "PPPP")}
               </Box>
             )}
-             {csvError && (
+            {csvError && (
               <Box className={classes.error}>
-                There was a problem processing the CSV. Please ensure this data is in the correct Victorian Energy Compare Data format.
+                There was a problem processing the CSV. Please ensure this data
+                is in the correct Victorian Energy Compare Data format.
               </Box>
             )}
           </Paper>
