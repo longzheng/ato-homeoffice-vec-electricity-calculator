@@ -10,8 +10,10 @@ import {
   FormHelperText,
   FormLabel,
   Grid,
+  InputAdornment,
   makeStyles,
   Paper,
+  TextField,
   Typography,
 } from "@material-ui/core";
 import { KeyboardDatePicker, KeyboardTimePicker } from "@material-ui/pickers";
@@ -20,6 +22,7 @@ import { parseCsv } from "../model/vec-csv";
 import { parse, format } from "date-fns";
 import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
+import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
 import HomeIcon from "@material-ui/icons/Home";
 import { VecRecord } from "../model/vec-csv";
@@ -79,7 +82,10 @@ export const Upload = () => {
     saturday: false,
     sunday: false,
   });
-  const [wfhUsage, setWfhUsage] = useState<number | undefined>();
+  const [wfhUsage, setWfhUsage] = useState<number>(0);
+  const [wfhDays, setWfhDays] = useState<number>(0);
+  const [costPerKwh, setCostPerKwh] = useState<number>(0.22);
+  const [percentageUsage, setPercentageUsage] = useState<number>(100);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const classes = useStyles();
@@ -149,6 +155,7 @@ export const Upload = () => {
     );
 
     let wfhUsage = 0;
+    let wfhDays = 0;
     consumptionData.map((record) => {
       for (const [key, value] of Object.entries(record.usageByHalfHour)) {
         // our data's keys are represented as a decimal value (e.g. 9:30 = 9.5)
@@ -157,10 +164,12 @@ export const Upload = () => {
           wfhUsage += value;
         }
       }
+      wfhDays++;
       return true;
     });
 
     setWfhUsage(wfhUsage);
+    setWfhDays(wfhDays);
 
     setIsProcessing(false);
   }, [usageData, startDate, endDate, isDayOfWeekMatch, isHourScheduleMatch]);
@@ -269,9 +278,11 @@ export const Upload = () => {
                 <br />
                 <strong>File size:</strong> {usageFile?.size.toString()} bytes
                 <br />
-                <strong>Earliest record date:</strong> {format(usageData[0].date, "PPPP")}
+                <strong>Earliest record date:</strong>{" "}
+                {format(usageData[0].date, "PPPP")}
                 <br />
-                <strong>Latest record date:</strong> {format(usageData[usageData.length - 1].date, "PPPP")}
+                <strong>Latest record date:</strong>{" "}
+                {format(usageData[usageData.length - 1].date, "PPPP")}
               </Box>
             )}
           </Paper>
@@ -300,6 +311,7 @@ export const Upload = () => {
                     InputAdornmentProps={{ position: "start" }}
                     onChange={(date) => date && setStartDate(date)}
                     margin="normal"
+                    fullWidth
                   />
                   <KeyboardDatePicker
                     autoOk
@@ -312,6 +324,7 @@ export const Upload = () => {
                     InputAdornmentProps={{ position: "start" }}
                     onChange={(date) => date && setEndDate(date)}
                     margin="normal"
+                    fullWidth
                   />
                 </FormControl>
               </Grid>
@@ -327,6 +340,7 @@ export const Upload = () => {
                     minutesStep={30}
                     onChange={(date) => date && setStartTime(date)}
                     margin="normal"
+                    fullWidth
                   />
                   <KeyboardTimePicker
                     label="End time"
@@ -337,9 +351,10 @@ export const Upload = () => {
                     minutesStep={30}
                     onChange={(date) => date && setEndTime(date)}
                     margin="normal"
+                    fullWidth
                   />
                   <FormHelperText>
-                    Usage data is only available in 30 minute increments
+                    Usage data is only available in 30 minute increments.
                   </FormHelperText>
                 </FormControl>
               </Grid>
@@ -383,22 +398,123 @@ export const Upload = () => {
             {isProcessing && <CircularProgress />}
             {!isProcessing && (
               <>
-                {wfhUsage !== undefined && wfhUsage > 0 && (
-                  <Box
-                    fontSize={28}
-                    m={4}
-                    textAlign="center"
-                    color="primary.main"
-                  >
-                    <Box>{Math.round(wfhUsage * 1000) / 1000} kWh</Box>
+                {usageData && wfhUsage > 0 && (
+                  <Box m={4} textAlign="center">
+                    <Box fontSize={28} color="primary.main">
+                      {Math.round(wfhUsage * 1000) / 1000} kWh
+                    </Box>
+                    <Box color="text.secondary">
+                      / {wfhDays} work days = ~
+                      {Math.round((wfhUsage / wfhDays) * 1000) / 1000} kWh per
+                      work day
+                    </Box>
                   </Box>
                 )}
-                {wfhUsage !== undefined && wfhUsage === 0 && (
+                {usageData && wfhUsage === 0 && (
                   <Box m={4} textAlign="center" color="text.secondary">
-                    No electricity usage
+                    <Box fontSize={20}>No electricity usage</Box>
+                    Check if your usage data and schedule are correct
                   </Box>
                 )}
-                {wfhUsage === undefined && (
+                {!usageData && (
+                  <Box m={4} textAlign="center" color="text.secondary">
+                    Select data to calculate usage
+                  </Box>
+                )}
+              </>
+            )}
+          </Paper>
+        </Grid>
+        <Grid item>
+          <Paper className={classes.paper}>
+            <Typography variant="h6" className={classes.heading}>
+              <MonetizationOnIcon />
+              Electricity cost
+            </Typography>
+            {isProcessing && <CircularProgress />}
+            {!isProcessing && (
+              <>
+                {usageData && wfhUsage > 0 && (
+                  <>
+                    <Grid container spacing={1}>
+                      <Grid item sm={6}>
+                        <TextField
+                          label="Cost per kWh"
+                          variant="outlined"
+                          margin="normal"
+                          type="number"
+                          value={costPerKwh}
+                          onChange={(input) =>
+                            setCostPerKwh(parseFloat(input.currentTarget.value))
+                          }
+                          fullWidth
+                        />
+                        <FormHelperText>
+                          This tool only supports single-rate flat pricing.
+                        </FormHelperText>
+                      </Grid>
+                      <Grid item sm={6}>
+                        <TextField
+                          label="Apportion of costs"
+                          variant="outlined"
+                          margin="normal"
+                          type="number"
+                          value={percentageUsage}
+                          onChange={(input) =>
+                            setPercentageUsage(
+                              Math.min(parseInt(input.currentTarget.value), 100)
+                            )
+                          }
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">%</InputAdornment>
+                            ),
+                          }}
+                          inputProps={{
+                            max: 100,
+                          }}
+                          fullWidth
+                        />
+                        <FormHelperText>
+                          Refer to{" "}
+                          <a
+                            href="https://www.ato.gov.au/individuals/income-and-deductions/deductions-you-can-claim/home-office-expenses/#:~:text=You%20must%20take%20into%20account%20other%20members%20of%20your%20household%20when%20you%20work%20out%20your%20expenses.%20If%20a%20member%20of%20your%20household%20is%20using%20the%20same%20area%20of%20the%20house%20or%20the%20same%20service%20when%20you're%20working,%20you%20must%20apportion%20your%20expenses%20accordingly."
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            ATO guidance
+                          </a>{" "}
+                          on how to splits costs in a household.
+                        </FormHelperText>
+                      </Grid>
+                    </Grid>
+
+                    <Box m={4} textAlign="center">
+                      <Box fontSize={28} color="primary.main">
+                        $
+                        {Math.round(
+                          wfhUsage * costPerKwh * (percentageUsage / 100) * 100
+                        ) / 100}
+                      </Box>
+                      <Box color="text.secondary">
+                        / {wfhDays} work days = ~$
+                        {Math.round(
+                          ((wfhUsage * costPerKwh * (percentageUsage / 100)) /
+                            wfhDays) *
+                            1000
+                        ) / 1000}{" "}
+                        per work day
+                      </Box>
+                    </Box>
+                  </>
+                )}
+                {usageData && wfhUsage === 0 && (
+                  <Box m={4} textAlign="center" color="text.secondary">
+                    <Box fontSize={20}>No electricity usage</Box>
+                    Check if your usage data and schedule are correct
+                  </Box>
+                )}
+                {!usageData && (
                   <Box m={4} textAlign="center" color="text.secondary">
                     Select data to calculate usage
                   </Box>
