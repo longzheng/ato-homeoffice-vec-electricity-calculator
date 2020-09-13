@@ -231,8 +231,8 @@ export const Upload = () => {
             >
               ATO's "actual cost method"
             </Link>{" "}
-            of deducting home office expenses, this tool automatically
-            processes the{" "}
+            of deducting home office expenses, this tool automatically processes
+            the{" "}
             <Link
               href="https://www.victorianenergysaver.vic.gov.au/energy-advice-for-business/accessing-and-understanding-energy-data"
               target="_blank"
@@ -256,7 +256,7 @@ export const Upload = () => {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                electricity distributor's website
+                electricity retailer or distributor's website
               </Link>
               .
             </Typography>
@@ -510,7 +510,7 @@ export const Upload = () => {
                         $
                         {Math.round(
                           wfhUsage * costPerKwh * (percentageUsage / 100) * 100
-                        ) / 100}
+                        ) / 100 || 0}
                       </Box>
                       <Box color="text.secondary">
                         / {wfhDays} work days = ~$
@@ -518,7 +518,7 @@ export const Upload = () => {
                           ((wfhUsage * costPerKwh * (percentageUsage / 100)) /
                             wfhDays) *
                             1000
-                        ) / 1000}{" "}
+                        ) / 1000 || 0}{" "}
                         per work day
                       </Box>
                     </Box>
