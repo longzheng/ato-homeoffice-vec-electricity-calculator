@@ -24,7 +24,6 @@ import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
 import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
-import HomeIcon from "@material-ui/icons/Home";
 import { VecRecord } from "../model/vec-csv";
 
 const useStyles = makeStyles((theme) => ({
@@ -393,6 +392,7 @@ export const Upload = () => {
                 ].map((value) => (
                   <FormControlLabel
                     key={value}
+                    style={{width: 124}}
                     control={
                       <Checkbox
                         checked={(daysOfWeek as any)[value.toLowerCase()]}
