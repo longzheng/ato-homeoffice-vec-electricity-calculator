@@ -4,22 +4,26 @@ import {
   Checkbox,
   CircularProgress,
   Container,
+  FormControl,
   FormControlLabel,
   FormGroup,
   FormHelperText,
   FormLabel,
   Grid,
   InputAdornment,
+  InputLabel,
   Link,
   makeStyles,
+  MenuItem,
   Paper,
+  Select,
   TextField,
   Typography,
 } from "@material-ui/core";
 import { KeyboardDatePicker, KeyboardTimePicker } from "@material-ui/pickers";
 import React, { useCallback, useMemo, useState } from "react";
-// import { parseCsv } from "../model/vec-csv";
-import { parseCsv } from "../model/citipower-csv";
+import { parseCsv as UnitedParseCsv } from "../model/vec-csv";
+import { parseCsv as CitipowerParseCsv } from "../model/citipower-csv";
 import { parse, format } from "date-fns";
 import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
@@ -67,15 +71,26 @@ const useStyles = makeStyles((theme) => ({
     color: "white",
     padding: theme.spacing(2),
   },
+  vecformat: {
+    maxWidth: 402,
+    display: 'flex',
+    margin: '0 auto'
+  },
 }));
+
+type VecFormat = "united" | "citipower";
 
 export const Upload = () => {
   const fileInputRef = React.createRef<HTMLInputElement>();
   const [usageFile, setUsageFile] = useState<File | undefined>(undefined);
   const [usageData, setUsageData] = useState<VecRecord[]>();
   const [csvError, setCsvError] = useState<boolean>(false);
-  const [startDate, setStartDate] = useState<Date>(new Date(`${new Date().getFullYear() - 1}-06-01`));
-  const [endDate, setEndDate] = useState<Date>(new Date(`${new Date().getFullYear()}-06-30`));
+  const [startDate, setStartDate] = useState<Date>(
+    new Date(`${new Date().getFullYear() - 1}-06-01`)
+  );
+  const [endDate, setEndDate] = useState<Date>(
+    new Date(`${new Date().getFullYear()}-06-30`)
+  );
   const [startTime, setStartTime] = useState<Date>(
     parse("8:00 AM", "h:m a", new Date())
   );
@@ -97,6 +112,7 @@ export const Upload = () => {
   const [percentageUsage, setPercentageUsage] = useState<number>(100);
   const [usageMaxQuantile, setUsageMaxQuantile] = useState<number>(95);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [vecFormat, setVecFormat] = useState<VecFormat>("united");
 
   const classes = useStyles();
 
@@ -131,7 +147,14 @@ export const Upload = () => {
     if (!usageFile) return;
 
     try {
-      setUsageData(await parseCsv(usageFile));
+      switch(vecFormat) {
+        case "united":
+          setUsageData(await UnitedParseCsv(usageFile));
+          break;
+        case "citipower":
+          setUsageData(await CitipowerParseCsv(usageFile));
+          break;
+      }
       setCsvError(false);
       gtag("event", "csv_parsed");
     } catch {
@@ -139,7 +162,7 @@ export const Upload = () => {
       setCsvError(true);
       gtag("event", "csv_error");
     }
-  }, [usageFile]);
+  }, [usageFile, vecFormat]);
 
   useMemo(async () => {
     if (!usageData) return;
@@ -278,6 +301,18 @@ export const Upload = () => {
               </Link>
               .
             </Typography>
+            <FormControl variant="filled" className={classes.vecformat}>
+              <InputLabel>CSV format</InputLabel>
+              <Select
+                value={vecFormat}
+                onChange={(event) =>
+                  setVecFormat(event.target.value as VecFormat)
+                }
+              >
+                <MenuItem value={"united"}>United/Powershop</MenuItem>
+                <MenuItem value={"citipower"}>CitiPower</MenuItem>
+              </Select>
+            </FormControl>
             <input
               ref={fileInputRef}
               style={{ display: "none" }}
