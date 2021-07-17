@@ -162,8 +162,7 @@ export const Upload = () => {
       (x) =>
         x.date >= startDate &&
         x.date <= endDate &&
-        isDayOfWeekMatch(x.date) &&
-        x.type === "consumption"
+        isDayOfWeekMatch(x.date) 
     );
 
     let wfhUsage: number[] = [];

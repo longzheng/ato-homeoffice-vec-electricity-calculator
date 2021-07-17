@@ -44,12 +44,14 @@ const onParseStep = (
 ) => {
   const data = (results.data as unknown) as { [key: string]: string };
 
+  const isConsumption = data["CON/GEN"] === "Consumption";
+
+  if (!isConsumption) {
+    return;
+  }
+
   records.push({
-    nmi: parseInt(data["NMI"]),
-    meter_serial_number: parseInt(data["METER SERIAL NUMBER"]),
-    type: data["CON/GEN"] === "Consumption" ? "consumption" : "generation",
     date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
-    estimated: data["ESTIMATED?"] === "Yes",
     usageByHalfHour: buildUsageByHalfHour(data),
   });
 };
