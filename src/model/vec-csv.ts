@@ -1,14 +1,6 @@
 import * as papaparse from "papaparse";
 import { parse } from "date-fns";
-
-export type VecRecord = {
-  nmi: number;
-  meter_serial_number: number;
-  type: "consumption" | "generation";
-  date: Date;
-  estimated: boolean;
-  usageByHalfHour: { [hour: number]: number };
-};
+import { VecRecord } from "./vecRecord";
 
 export const parseCsv = async (file: File): Promise<VecRecord[]> => {
   return new Promise(async (resolve, reject) => {
@@ -52,20 +44,27 @@ const onParseStep = (
 ) => {
   const data = (results.data as unknown) as { [key: string]: string };
 
-  records.push({
-    nmi: parseInt(data["NMI"]),
-    meter_serial_number: parseInt(data["METER SERIAL NUMBER"]),
-    type: data["CON/GEN"] === "Consumption" ? "consumption" : "generation",
-    date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
-    estimated: data["ESTIMATED?"] === "Yes",
-    usageByHalfHour: buildUsageByHalfHour(data),
-  });
+  const isConsumption = data["CON/GEN"] === "Consumption";
+
+  if (!isConsumption) {
+    return;
+  }
+
+  const usageByHalfHour = buildUsageByHalfHour(data);
+
+  for (const [hour, consumption] of Object.entries(usageByHalfHour)) {
+    records.push({
+      date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
+      hour: parseFloat(hour),
+      consumption: consumption,
+    });
+  };
 };
 
 const buildUsageByHalfHour = (data: {
   [key: string]: string;
-}): { [key: number]: number } => {
-  let halfHourlyUsage: { [key: number]: number } = {};
+}): { [hour: number]: number } => {
+  let halfHourlyUsage: { [hour: number]: number } = {};
 
   // loop through 30 minute blocks
   for (let hour = 0; hour < 24; hour++) {

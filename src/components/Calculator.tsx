@@ -4,28 +4,33 @@ import {
   Checkbox,
   CircularProgress,
   Container,
+  FormControl,
   FormControlLabel,
   FormGroup,
   FormHelperText,
   FormLabel,
   Grid,
   InputAdornment,
+  InputLabel,
   Link,
   makeStyles,
+  MenuItem,
   Paper,
+  Select,
   TextField,
   Typography,
 } from "@material-ui/core";
 import { KeyboardDatePicker, KeyboardTimePicker } from "@material-ui/pickers";
 import React, { useCallback, useMemo, useState } from "react";
-import { parseCsv } from "../model/vec-csv";
+import { parseCsv as UnitedParseCsv } from "../model/vec-csv";
+import { parseCsv as CitipowerParseCsv } from "../model/citipower-csv";
 import { parse, format } from "date-fns";
 import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
 import MonetizationOnIcon from "@material-ui/icons/MonetizationOn";
 import InsertDriveFileIcon from "@material-ui/icons/InsertDriveFile";
-import { VecRecord } from "../model/vec-csv";
 import { max, median, q25, q75, quantile } from "../model/maths-helper";
+import { VecRecord } from "../model/vecRecord";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -58,6 +63,7 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.success.dark,
     color: "white",
     padding: theme.spacing(2),
+    overflowWrap: "break-word",
   },
   error: {
     borderRadius: theme.shape.borderRadius,
@@ -65,15 +71,26 @@ const useStyles = makeStyles((theme) => ({
     color: "white",
     padding: theme.spacing(2),
   },
+  vecformat: {
+    maxWidth: 402,
+    display: 'flex',
+    margin: '0 auto'
+  },
 }));
+
+type VecFormat = "united" | "citipower";
 
 export const Upload = () => {
   const fileInputRef = React.createRef<HTMLInputElement>();
   const [usageFile, setUsageFile] = useState<File | undefined>(undefined);
   const [usageData, setUsageData] = useState<VecRecord[]>();
   const [csvError, setCsvError] = useState<boolean>(false);
-  const [startDate, setStartDate] = useState<Date>(new Date("2020-03-01"));
-  const [endDate, setEndDate] = useState<Date>(new Date("2020-06-30"));
+  const [startDate, setStartDate] = useState<Date>(
+    new Date(`${new Date().getFullYear() - 1}-06-01`)
+  );
+  const [endDate, setEndDate] = useState<Date>(
+    new Date(`${new Date().getFullYear()}-06-30`)
+  );
   const [startTime, setStartTime] = useState<Date>(
     parse("8:00 AM", "h:m a", new Date())
   );
@@ -95,6 +112,7 @@ export const Upload = () => {
   const [percentageUsage, setPercentageUsage] = useState<number>(100);
   const [usageMaxQuantile, setUsageMaxQuantile] = useState<number>(95);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [vecFormat, setVecFormat] = useState<VecFormat>("united");
 
   const classes = useStyles();
 
@@ -124,25 +142,19 @@ export const Upload = () => {
     [daysOfWeek]
   );
 
-  const isHourScheduleMatch = useCallback(
-    (hour: number) => {
-      // convert time to hours represented in decimal (e.g. 9:30 = 9.5)
-      const startTimeHoursDecimal =
-        startTime.getHours() + (startTime.getMinutes() >= 30 ? 0.5 : 0);
-      const endTimeHoursDecimal =
-        endTime.getHours() + (endTime.getMinutes() >= 30 ? 0.5 : 0);
-
-      return hour >= startTimeHoursDecimal && hour < endTimeHoursDecimal;
-    },
-    [startTime, endTime]
-  );
-
   /** Handle uploading data */
   useMemo(async () => {
     if (!usageFile) return;
 
     try {
-      setUsageData(await parseCsv(usageFile));
+      switch(vecFormat) {
+        case "united":
+          setUsageData(await UnitedParseCsv(usageFile));
+          break;
+        case "citipower":
+          setUsageData(await CitipowerParseCsv(usageFile));
+          break;
+      }
       setCsvError(false);
       gtag("event", "csv_parsed");
     } catch {
@@ -150,12 +162,18 @@ export const Upload = () => {
       setCsvError(true);
       gtag("event", "csv_error");
     }
-  }, [usageFile]);
+  }, [usageFile, vecFormat]);
 
   useMemo(async () => {
     if (!usageData) return;
 
     setIsProcessing(true);
+
+    // convert time to hours represented in decimal (e.g. 9:30 = 9.5)
+    const startTimeHoursDecimal =
+      startTime.getHours() + (startTime.getMinutes() >= 30 ? 0.5 : 0);
+    const endTimeHoursDecimal =
+      endTime.getHours() + (endTime.getMinutes() >= 30 ? 0.5 : 0);
 
     // filter usage data by consumption
     const consumptionData = usageData.filter(
@@ -163,28 +181,19 @@ export const Upload = () => {
         x.date >= startDate &&
         x.date <= endDate &&
         isDayOfWeekMatch(x.date) &&
-        x.type === "consumption"
+        x.hour >= startTimeHoursDecimal &&
+        x.hour < endTimeHoursDecimal
     );
 
-    let wfhUsage: number[] = [];
-    let wfhDays = 0;
-    consumptionData.map((record) => {
-      for (const [key, value] of Object.entries(record.usageByHalfHour)) {
-        // our data's keys are represented as a decimal value (e.g. 9:30 = 9.5)
-        let hour = parseFloat(key);
-        if (isHourScheduleMatch(hour)) {
-          wfhUsage.push(value);
-        }
-      }
-      wfhDays++;
-      return true;
-    });
+    const wfhUsage = consumptionData.map((x) => x.consumption);
+    const wfhDays = new Set(consumptionData.map((x) => x.date.toDateString()))
+      .size;
 
     setWfhUsage(wfhUsage);
     setWfhDays(wfhDays);
 
     setIsProcessing(false);
-  }, [usageData, startDate, endDate, isDayOfWeekMatch, isHourScheduleMatch]);
+  }, [usageData, startTime, endTime, startDate, endDate, isDayOfWeekMatch]);
 
   const wfhUsageSummary = useMemo(() => {
     if (wfhUsage) {
@@ -292,6 +301,18 @@ export const Upload = () => {
               </Link>
               .
             </Typography>
+            <FormControl variant="filled" className={classes.vecformat}>
+              <InputLabel>CSV format</InputLabel>
+              <Select
+                value={vecFormat}
+                onChange={(event) =>
+                  setVecFormat(event.target.value as VecFormat)
+                }
+              >
+                <MenuItem value={"united"}>United/Powershop</MenuItem>
+                <MenuItem value={"citipower"}>CitiPower</MenuItem>
+              </Select>
+            </FormControl>
             <input
               ref={fileInputRef}
               style={{ display: "none" }}
