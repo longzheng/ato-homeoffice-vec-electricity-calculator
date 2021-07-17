@@ -1,14 +1,6 @@
 import * as papaparse from "papaparse";
 import { parse } from "date-fns";
-
-export type VecRecord = {
-  nmi: number;
-  meter_serial_number: number;
-  type: "consumption" | "generation";
-  date: Date;
-  estimated: boolean;
-  usageByHalfHour: { [hour: number]: number };
-};
+import { VecRecord } from "./vecRecord";
 
 export const parseCsv = async (file: File): Promise<VecRecord[]> => {
   return new Promise(async (resolve, reject) => {
