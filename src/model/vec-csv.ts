@@ -50,16 +50,21 @@ const onParseStep = (
     return;
   }
 
-  records.push({
-    date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
-    usageByHalfHour: buildUsageByHalfHour(data),
-  });
+  const usageByHalfHour = buildUsageByHalfHour(data);
+
+  for (const [hour, consumption] of Object.entries(usageByHalfHour)) {
+    records.push({
+      date: parse(data["DATE"], "dd/MM/yyyy", new Date()),
+      hour: parseFloat(hour),
+      consumption: consumption,
+    });
+  };
 };
 
 const buildUsageByHalfHour = (data: {
   [key: string]: string;
-}): { [key: number]: number } => {
-  let halfHourlyUsage: { [key: number]: number } = {};
+}): { [hour: number]: number } => {
+  let halfHourlyUsage: { [hour: number]: number } = {};
 
   // loop through 30 minute blocks
   for (let hour = 0; hour < 24; hour++) {

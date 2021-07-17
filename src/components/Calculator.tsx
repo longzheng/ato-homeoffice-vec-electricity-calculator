@@ -18,7 +18,8 @@ import {
 } from "@material-ui/core";
 import { KeyboardDatePicker, KeyboardTimePicker } from "@material-ui/pickers";
 import React, { useCallback, useMemo, useState } from "react";
-import { parseCsv } from "../model/vec-csv";
+// import { parseCsv } from "../model/vec-csv";
+import { parseCsv } from "../model/citipower-csv";
 import { parse, format } from "date-fns";
 import DateRangeTwoToneIcon from "@material-ui/icons/DateRangeTwoTone";
 import PowerIcon from "@material-ui/icons/Power";
@@ -58,6 +59,7 @@ const useStyles = makeStyles((theme) => ({
     background: theme.palette.success.dark,
     color: "white",
     padding: theme.spacing(2),
+    overflowWrap: "break-word",
   },
   error: {
     borderRadius: theme.shape.borderRadius,
@@ -72,8 +74,8 @@ export const Upload = () => {
   const [usageFile, setUsageFile] = useState<File | undefined>(undefined);
   const [usageData, setUsageData] = useState<VecRecord[]>();
   const [csvError, setCsvError] = useState<boolean>(false);
-  const [startDate, setStartDate] = useState<Date>(new Date("2020-03-01"));
-  const [endDate, setEndDate] = useState<Date>(new Date("2020-06-30"));
+  const [startDate, setStartDate] = useState<Date>(new Date(`${new Date().getFullYear() - 1}-06-01`));
+  const [endDate, setEndDate] = useState<Date>(new Date(`${new Date().getFullYear()}-06-30`));
   const [startTime, setStartTime] = useState<Date>(
     parse("8:00 AM", "h:m a", new Date())
   );
@@ -124,19 +126,6 @@ export const Upload = () => {
     [daysOfWeek]
   );
 
-  const isHourScheduleMatch = useCallback(
-    (hour: number) => {
-      // convert time to hours represented in decimal (e.g. 9:30 = 9.5)
-      const startTimeHoursDecimal =
-        startTime.getHours() + (startTime.getMinutes() >= 30 ? 0.5 : 0);
-      const endTimeHoursDecimal =
-        endTime.getHours() + (endTime.getMinutes() >= 30 ? 0.5 : 0);
-
-      return hour >= startTimeHoursDecimal && hour < endTimeHoursDecimal;
-    },
-    [startTime, endTime]
-  );
-
   /** Handle uploading data */
   useMemo(async () => {
     if (!usageFile) return;
@@ -157,33 +146,31 @@ export const Upload = () => {
 
     setIsProcessing(true);
 
+    // convert time to hours represented in decimal (e.g. 9:30 = 9.5)
+    const startTimeHoursDecimal =
+      startTime.getHours() + (startTime.getMinutes() >= 30 ? 0.5 : 0);
+    const endTimeHoursDecimal =
+      endTime.getHours() + (endTime.getMinutes() >= 30 ? 0.5 : 0);
+
     // filter usage data by consumption
     const consumptionData = usageData.filter(
       (x) =>
         x.date >= startDate &&
         x.date <= endDate &&
-        isDayOfWeekMatch(x.date) 
+        isDayOfWeekMatch(x.date) &&
+        x.hour >= startTimeHoursDecimal &&
+        x.hour < endTimeHoursDecimal
     );
 
-    let wfhUsage: number[] = [];
-    let wfhDays = 0;
-    consumptionData.map((record) => {
-      for (const [key, value] of Object.entries(record.usageByHalfHour)) {
-        // our data's keys are represented as a decimal value (e.g. 9:30 = 9.5)
-        let hour = parseFloat(key);
-        if (isHourScheduleMatch(hour)) {
-          wfhUsage.push(value);
-        }
-      }
-      wfhDays++;
-      return true;
-    });
+    const wfhUsage = consumptionData.map((x) => x.consumption);
+    const wfhDays = new Set(consumptionData.map((x) => x.date.toDateString()))
+      .size;
 
     setWfhUsage(wfhUsage);
     setWfhDays(wfhDays);
 
     setIsProcessing(false);
-  }, [usageData, startDate, endDate, isDayOfWeekMatch, isHourScheduleMatch]);
+  }, [usageData, startTime, endTime, startDate, endDate, isDayOfWeekMatch]);
 
   const wfhUsageSummary = useMemo(() => {
     if (wfhUsage) {

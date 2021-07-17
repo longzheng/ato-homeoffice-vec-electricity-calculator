@@ -1,4 +1,5 @@
 export type VecRecord = {
     date: Date;
-    usageByHalfHour: { [hour: number]: number };
+    hour: number;
+    consumption: number;
   };
